@@ -1,3 +1,5 @@
+New in 1.3.0: a **Local API** tab with endpoint/key copying, key rotation, and a ready-to-run Python tutorial. A small **Check for updates** button finds the compatible GitHub download. The local API is opt-in, works while Astro Tour is open, and follows the planner’s selected place and time.
+
 Astro Tour is a desktop astrophotography planner with hourly weather, automatic device location and modeled sky brightness, Moon illumination, a session score, a live clock and timeline, saved places, a separate Map, and Day / Night / red Astro modes. English interface.
 
 **Choose your Mac:** download `macOS-x64.zip` for Intel, or `macOS-arm64.zip` for Apple Silicon. Unzip and move **Astro Tour.app** to Applications.

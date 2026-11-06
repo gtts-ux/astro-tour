@@ -1,12 +1,12 @@
 {
   "name": "astro-tour",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Astrophotography session planner",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
     "build": "node package-mac.cjs",
-    "test": "node --test engine.test.cjs light.test.cjs location.test.cjs",
+    "test": "node --test engine.test.cjs light.test.cjs location.test.cjs local-api.test.cjs updates.test.cjs",
     "build:mac": "node package-mac.cjs",
     "build:win": "electron-builder --win nsis zip --x64 --publish never",
     "test:desktop": "node smoke.cjs"
@@ -43,7 +43,11 @@
       "style.css",
       "package.json",
       "README.md",
-      "THIRD_PARTY_NOTICES.md"
+      "THIRD_PARTY_NOTICES.md",
+      "local-api.cjs",
+      "api-controller.cjs",
+      "updates.cjs",
+      "api-ui.js"
     ],
     "win": {
       "target": [

@@ -56,4 +56,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
-        run: gh release create $env:TAG --verify-tag --title "Astro Tour 1.2.1 — Windows" --notes-file .github/release-windows.md --latest=false (Get-ChildItem assets/* | ForEach-Object FullName)
+        run: gh release create $env:TAG --verify-tag --title "Astro Tour 1.3.0 — Windows" --notes-file .github/release-windows.md --latest=false (Get-ChildItem assets/* | ForEach-Object FullName)

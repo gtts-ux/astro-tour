@@ -1,8 +1,17 @@
-const {app,BrowserWindow,ipcMain,shell,session}=require('electron');
+const {app,BrowserWindow,ipcMain,shell,session,clipboard}=require('electron');
 const path=require('path');
 const {execFile}=require('node:child_process');
 const {lookup}=require('./light.cjs');
 const {locationHelper}=require('./location.cjs');
+const {createApiController}=require('./api-controller.cjs');
+const {checkForUpdates}=require('./updates.cjs');
+let apiController, updateDownload;
+ipcMain.on('clipboard:write',(event,text)=>{if(typeof text==='string'&&text.length<65536){clipboard.writeText(text);event.returnValue=true}else event.returnValue=false});
+ipcMain.handle('api:status',()=>apiController.status());
+ipcMain.handle('api:configure',(_,action)=>apiController.configure(action));
+ipcMain.on('api:publish',(_,data)=>{try{apiController.publish(data)}catch{}});
+ipcMain.handle('updates:check',async()=>{try{const result=await checkForUpdates(app.getVersion(),process.platform,process.arch);updateDownload=result.url;return result}catch(e){return {error:e.message}}});
+ipcMain.handle('updates:download',()=>{if(updateDownload)return shell.openExternal(updateDownload)});
 ipcMain.handle('light',(_,lat,lon)=>lookup(lat,lon));
 let pendingLocation;
 ipcMain.handle('locate',()=>{
@@ -15,4 +24,4 @@ app.setName('Astro Tour');
 const allowed=new Set(['api.open-meteo.com','geocoding-api.open-meteo.com']);
 ipcMain.handle('fetch',async(_,url)=>{const u=new URL(url);if(u.protocol!=='https:'||!allowed.has(u.hostname))throw Error('Source not allowed');const r=await fetch(url,{signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error(`Data server: ${r.status}`);return r.json()});
 ipcMain.handle('external',(_,url)=>{if(url==='https://www.lightpollutionmap.info/')shell.openExternal(url)});
-app.whenReady().then(()=>{session.defaultSession.setPermissionRequestHandler((_,__,cb)=>cb(false));function create(){const w=new BrowserWindow({width:1420,height:960,minWidth:1050,minHeight:720,backgroundColor:'#0b1019',title:'Astro Tour',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false}});w.webContents.setWindowOpenHandler(()=>({action:'deny'}));w.webContents.on('will-navigate',e=>e.preventDefault());w.loadFile('index.html')}create();app.on('activate',()=>{if(!BrowserWindow.getAllWindows().length)create()})});app.on('window-all-closed',()=>app.quit());
+app.whenReady().then(async()=>{apiController=createApiController(app.getPath('userData'),app.getVersion(),process.env.ASTRO_API_PORT===undefined?undefined:Number(process.env.ASTRO_API_PORT));await apiController.initialize();session.defaultSession.setPermissionRequestHandler((_,__,cb)=>cb(false));function create(){const w=new BrowserWindow({width:1420,height:960,minWidth:1050,minHeight:720,backgroundColor:'#0b1019',title:'Astro Tour',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,backgroundThrottling:false}});w.webContents.setWindowOpenHandler(()=>({action:'deny'}));w.webContents.on('will-navigate',e=>e.preventDefault());w.loadFile('index.html')}create();app.on('activate',()=>{if(!BrowserWindow.getAllWindows().length)create()})});app.on('before-quit',()=>apiController?.stop());app.on('window-all-closed',()=>app.quit());

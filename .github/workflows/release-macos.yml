@@ -37,8 +37,9 @@ jobs:
         env:
           ARCH: ${{ matrix.arch }}
         run: |
+          VERSION=$(node -p "require('./package.json').version")
           mkdir -p assets
-          ditto -c -k --sequesterRsrc --keepParent "release/Astro Tour-darwin-$ARCH/Astro Tour.app" "assets/Astro-Tour-1.2.0-macOS-$ARCH.zip"
+          ditto -c -k --sequesterRsrc --keepParent "release/Astro Tour-darwin-$ARCH/Astro Tour.app" "assets/Astro-Tour-$VERSION-macOS-$ARCH.zip"
           cd assets
           shasum -a 256 *.zip > "SHA256SUMS-macOS-$ARCH.txt"
       - uses: actions/upload-artifact@v4
@@ -61,4 +62,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
-        run: gh release create "$TAG" --verify-tag --title "Astro Tour 1.2.0 — macOS" --notes-file .github/release-macos.md --latest assets/*
+        run: gh release create "$TAG" --verify-tag --title "Astro Tour 1.3.0 — macOS" --notes-file .github/release-macos.md --latest assets/*

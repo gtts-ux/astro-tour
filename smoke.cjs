@@ -1,13 +1,13 @@
 const {_electron:electron}=require('playwright');
 const assert=require('node:assert/strict');
-const {mkdtempSync,existsSync}=require('node:fs');
+const {mkdtempSync,existsSync,writeFileSync}=require('node:fs');
 const {execFileSync}=require('node:child_process');
 const path=require('node:path');
 const os=require('node:os');
 const {locationHelper}=require('./location.cjs');
 (async()=>{
  const profile=mkdtempSync(path.join(os.tmpdir(),'astro-tour-smoke-'));
- const app=await electron.launch({...(process.env.ASTRO_EXECUTABLE?{executablePath:process.env.ASTRO_EXECUTABLE}:{}),args:[...(process.env.ASTRO_EXECUTABLE?[]:['.']),`--user-data-dir=${profile}`]});
+ const app=await electron.launch({...(process.env.ASTRO_EXECUTABLE?{executablePath:process.env.ASTRO_EXECUTABLE}:{}),args:[...(process.env.ASTRO_EXECUTABLE?[]:['.']),`--user-data-dir=${profile}`],env:{...process.env,ASTRO_API_PORT:'0'}});
  try{
   const errors=[];
   const page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(45000);
@@ -26,12 +26,21 @@ const {locationHelper}=require('./location.cjs');
   await app.evaluate(({ipcMain})=>{ipcMain.removeHandler('locate');ipcMain.handle('locate',()=>({lat:40.7,lon:-74,accuracy:100}))});
   await page.locator('#locate').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Updated'));
   assert.equal(await page.locator('.metric').count(),8);assert.ok((await page.locator('#lightStatus').textContent()).includes('21.20'));
-  assert.ok(await page.locator('#mapView').isHidden());const clock=await page.locator('#selectedClock').textContent();await page.waitForTimeout(1200);assert.notEqual(clock,await page.locator('#selectedClock').textContent());assert.equal(await page.locator('#clockZone').textContent(),'America/New_York');
+  assert.ok(await page.locator('#mapView').isHidden());const clock=await page.locator('#selectedClock').textContent();await page.waitForFunction(old=>document.querySelector('#selectedClock').textContent!==old,clock,{timeout:10000});assert.equal(await page.locator('#clockZone').textContent(),'America/New_York');
   await page.locator('#timeline').fill('3');assert.equal(await page.locator('#timeMode').textContent(),'PREVIEW');const dateBefore=await page.locator('#date').inputValue();const nextDate=await page.locator('#date').evaluate(e=>{const d=new Date(e.value+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10)});await page.locator('#date').fill(nextDate);await page.locator('#date').dispatchEvent('change');assert.notEqual(await page.locator('#date').inputValue(),dateBefore);
   await page.locator('#now').click();assert.equal(await page.locator('#timeMode').textContent(),'LIVE');
   await page.locator('#mapnav').click();assert.ok(await page.locator('#plannerView').isHidden());assert.ok(await page.locator('#mapView').isVisible());await page.locator('#map').click({position:{x:150,y:150}});await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Updated'));
   await page.locator('#overview').click();for(const theme of ['astro','day','night']){await page.locator(`button[data-theme=${theme}]`).click();assert.equal(await page.locator('body').getAttribute('data-theme'),theme)}
   await page.locator('#save').click();await page.locator('#savednav').click();assert.ok(await page.locator('#results button').count()>0);assert.deepEqual(errors,[]);
-  console.log('PASS: packaged native helper, location consent/denial/success, forecast, automatic atlas, seconds clock, location time zone, slider/date/live reset, Map selection, themes and saved places.');
+  await page.locator('#apinav').click();assert.ok(await page.locator('#apiView').isVisible());assert.ok(await page.locator('#plannerView').isHidden());await page.locator('#toggleApi').click();await page.waitForFunction(()=>document.querySelector('#apiStatus').textContent.includes('Running'));
+  const settings=await page.evaluate(()=>window.desktop.apiStatus());const apiData=await (await fetch(settings.endpoint,{headers:{Authorization:'Bearer '+settings.token}})).json();assert.equal(apiData.score,Number(await page.locator('#score').textContent()));assert.ok(apiData.conditions.cloud_cover_percent>=0);
+  await page.locator('#copyPython').click();const python=await app.evaluate(({clipboard})=>clipboard.readText());assert.ok(python.length>0,'Copy Python: '+await page.locator('#apiStatus').textContent());const pythonFile=path.join(profile,'astro_score.py');writeFileSync(pythonFile,python);const output=execFileSync(process.platform==='win32'?'python':'python3',[pythonFile],{encoding:'utf8',timeout:15000});assert.match(output,/Astro score: \d+%/);
+  await page.locator('#rotateApiKey').click();await page.waitForFunction(old=>document.querySelector('#apiKey').value!==old,settings.token);const rotated=await page.evaluate(()=>window.desktop.apiStatus());assert.equal((await fetch(rotated.endpoint,{headers:{Authorization:'Bearer '+settings.token}})).status,401);
+  await page.locator('#toggleApi').click();await page.waitForFunction(()=>document.querySelector('#apiStatus').textContent.includes('Disabled'));
+  await app.evaluate(({ipcMain})=>{ipcMain.removeHandler('updates:check');ipcMain.handle('updates:check',()=>({available:false,current:'1.3.0'}))});await page.locator('#checkUpdates').click();await page.waitForFunction(()=>document.querySelector('#updateStatus').textContent.includes('up to date'));
+  await app.evaluate(({ipcMain})=>{ipcMain.removeHandler('updates:check');ipcMain.handle('updates:check',()=>({available:true,current:'1.3.0',version:'1.4.0'}));ipcMain.removeHandler('updates:download');ipcMain.handle('updates:download',()=>true)});await page.locator('#checkUpdates').click();await page.waitForFunction(()=>!document.querySelector('#downloadUpdate').hidden);await page.locator('#downloadUpdate').click();
+  await app.evaluate(({ipcMain})=>{ipcMain.removeHandler('updates:check');ipcMain.handle('updates:check',()=>({error:'Offline'}))});await page.locator('#checkUpdates').click();await page.waitForFunction(()=>document.querySelector('#updateStatus').textContent.includes('Offline'));assert.deepEqual(errors,[]);
+  await page.screenshot({path:require('node:path').join(require('node:os').tmpdir(),'astro-tour-api-preview.png'),fullPage:true});
+  console.log('PASS: local API, real Python integration, key rotation, update checking,  packaged native helper, location consent/denial/success, forecast, automatic atlas, seconds clock, location time zone, slider/date/live reset, Map selection, themes and saved places.');
  }finally{await app.close()}
 })().catch(e=>{console.error(e);process.exit(1)});
