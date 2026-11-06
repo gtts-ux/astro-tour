@@ -23,7 +23,9 @@ jobs:
         shell: pwsh
         run: |
           $compiler = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
-          & $compiler /nologo /target:exe /platform:x64 /reference:System.Device.dll /out:native/AstroTourLocation.exe native/Location.Windows.cs
+          $source = Join-Path $PWD 'native\Location.Windows.cs'
+          $output = Join-Path $PWD 'native\AstroTourLocation.exe'
+          & $compiler /nologo /target:exe /platform:x64 /reference:System.Device.dll "/out:$output" $source
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & ./native/AstroTourLocation.exe --diagnose
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -54,4 +56,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
-        run: gh release create $env:TAG --verify-tag --title "Astro Tour 1.2.0 — Windows" --notes-file .github/release-windows.md --latest=false (Get-ChildItem assets/* | ForEach-Object FullName)
+        run: gh release create $env:TAG --verify-tag --title "Astro Tour 1.2.1 — Windows" --notes-file .github/release-windows.md --latest=false (Get-ChildItem assets/* | ForEach-Object FullName)
