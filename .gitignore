@@ -1,0 +1,10 @@
+node_modules/
+release/
+dist/
+.codex/
+.DS_Store
+*.log
+native/astro-location
+native/AstroTourLocation.exe
+screenshot.png
+native-check.cjs

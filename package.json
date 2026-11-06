@@ -1,0 +1,79 @@
+{
+  "name": "astro-tour",
+  "version": "1.2.0",
+  "description": "Astrophotography session planner",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build": "node package-mac.cjs",
+    "test": "node --test engine.test.cjs light.test.cjs location.test.cjs",
+    "build:mac": "node package-mac.cjs",
+    "build:win": "electron-builder --win nsis zip --x64 --publish never",
+    "test:desktop": "node smoke.cjs"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "suncalc": "^1.9.0"
+  },
+  "devDependencies": {
+    "@electron/packager": "^19.0.0",
+    "electron": "^39.0.0",
+    "electron-builder": "^26.18.0",
+    "playwright": "^1.56.0"
+  },
+  "author": "gtts-ux",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gtts-ux/astro-tour.git"
+  },
+  "build": {
+    "appId": "com.astrotour.desktop",
+    "productName": "Astro Tour",
+    "directories": {
+      "output": "release/windows"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "location.cjs",
+      "light.cjs",
+      "engine.js",
+      "app.js",
+      "index.html",
+      "style.css",
+      "package.json",
+      "README.md",
+      "THIRD_PARTY_NOTICES.md"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "extraResources": [
+        {
+          "from": "native/AstroTourLocation.exe",
+          "to": "native/AstroTourLocation.exe"
+        }
+      ],
+      "artifactName": "Astro-Tour-${version}-Windows-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "artifactName": "Astro-Tour-${version}-Windows-Setup-${arch}.${ext}"
+    }
+  }
+}

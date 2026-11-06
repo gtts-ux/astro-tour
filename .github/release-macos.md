@@ -1,0 +1,7 @@
+Astro Tour is a desktop astrophotography planner with hourly weather, automatic device location and modeled sky brightness, Moon illumination, a session score, a live clock and timeline, saved places, a separate Map, and Day / Night / red Astro modes. English interface.
+
+**Choose your Mac:** download `macOS-x64.zip` for Intel, or `macOS-arm64.zip` for Apple Silicon. Unzip and move **Astro Tour.app** to Applications.
+
+The application is locally signed, but is not Apple notarized. If macOS blocks first launch, review the app in **System Settings → Privacy & Security → Open Anyway**. Location permission is requested by **Astro Tour Location**, the bundled native helper. Weather and maps require internet. Bortle is an approximate equivalent derived from modeled zenith brightness, not a field observation.
+
+SHA-256 checksums are included for both downloads. This release is built and smoke-tested on both Mac architectures. See the README for sources, privacy, scoring and development instructions.

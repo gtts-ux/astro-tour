@@ -1,0 +1,4 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');const path=require('node:path');const {locationHelper}=require('./location.cjs');
+test('macOS uses the separately bundled application identity',()=>{const p=locationHelper('darwin',true,'/app/Contents/Resources','/source');assert.equal(p,path.join('/app/Contents/Frameworks/Astro Tour Location.app/Contents/MacOS/AstroTourLocation'))});
+test('Windows runs the bundled native executable outside the application archive',()=>assert.equal(locationHelper('win32',true,'/app/resources','/source'),path.join('/app/resources/native/AstroTourLocation.exe')));
+test('development uses local compiled helpers and unsupported systems fail clearly',()=>{assert.equal(locationHelper('win32',false,'/app','/source'),path.join('/source/native/AstroTourLocation.exe'));assert.throws(()=>locationHelper('linux',true,'/app','/source'),/supported on macOS and Windows/)});
