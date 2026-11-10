@@ -6,8 +6,8 @@ A desktop astrophotography planner for macOS and Windows. Find your observing lo
 
 | Platform | Release | Downloads |
 | --- | --- | --- |
-| macOS | [macOS release](https://github.com/gtts-ux/astro-tour/releases/tag/v1.3.0-macos) | Intel (x64) and Apple Silicon (arm64) ZIP archives |
-| Windows 10/11 | [Windows release](https://github.com/gtts-ux/astro-tour/releases/tag/v1.3.0-windows) | x64 installer EXE and portable ZIP |
+| macOS | [macOS release](https://github.com/gtts-ux/astro-tour/releases/tag/v1.4.0-macos) | Intel (x64) and Apple Silicon (arm64) ZIP archives |
+| Windows 10/11 | [Windows release](https://github.com/gtts-ux/astro-tour/releases/tag/v1.4.0-windows) | x64 installer EXE and portable ZIP |
 
 **Mac:** unzip and move Astro Tour.app to Applications. The app is locally signed but not Apple notarized; macOS may require **System Settings → Privacy & Security → Open Anyway** on first launch.
 
@@ -20,7 +20,8 @@ A desktop astrophotography planner for macOS and Windows. Find your observing lo
 - Automatic modeled sky brightness from the VIIRS 2025 atlas, with a separately labeled approximate Bortle equivalent.
 - Moon illumination and altitude; Sun altitude and astronomical darkness.
 - A 0–100 deep-sky imaging score with individual condition cards.
-- A live clock with seconds, an hourly time slider, a date picker and **Back to now**.
+- A live clock with seconds, a time slider with one-minute steps, a date picker and **Back to now**.
+- Leaderboard: sampled worldwide Top 100 or areas within 100 km, with today/future-day modes.
 - Day, Night and red Astro themes. English interface.
 - Local API with a copyable endpoint, Bearer key and a ready-to-run Python example.
 - A small **Check for updates** button that finds the newest compatible GitHub download.
@@ -31,7 +32,7 @@ Click **Use my location**. On macOS, allow **Astro Tour Location**, the bundled 
 
 Coordinates are sent to Open-Meteo for the forecast. The relevant regional sky-brightness tile is requested from David Lorenz's atlas. Map tiles are requested from Esri. Saved locations and theme preferences stay on your computer. There is no IP-location fallback or app telemetry.
 
-The header shows device time. The planner uses the selected observing location's IANA time zone. Live mode follows the current time; moving the slider enters forecast preview. **Weather is hourly, not measured every second.**
+The header shows device time. The planner uses the selected observing location's IANA time zone. Live mode follows the current time; moving the slider enters minute-level forecast preview. **Weather is hourly, not measured every second.**
 
 ## Sky brightness and score
 
@@ -40,6 +41,18 @@ The atlas models artificial zenith brightness; it is **not a Bortle classificati
 Score weights: clouds 40%, Moon 15%, sky darkness 15%, humidity 10%, wind 10%, visibility 10%. Missing sky brightness produces a partial score with normalized remaining weights. Daylight caps the score at 5%; Sun above −12° at 20%; above −18° at 55%. Rain or ≥95% cloud cover caps it at 10%; ≥80% clouds at 25%. The score is a planning heuristic for deep-sky objects, not a success probability or astronomical-seeing forecast.
 
 Data sources and interpretation: [Open-Meteo](https://open-meteo.com/en/docs), [David Lorenz atlas](https://djlorenz.github.io/astronomy/lp/), [zenith brightness vs Bortle](https://djlorenz.github.io/astronomy/lp/bortle.html), [SunCalc](https://github.com/mourner/suncalc). Full attribution: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Leaderboard
+
+The **Leaderboard** tab has **Worldwide** and **Within 100 km** modes. It ranks up to 100 of 192 sampled land areas, each a circular **2.5 km²** area (radius about 892 m). Nearby areas lie entirely inside the 100 km radius of your selected location. Worldwide samples are geographically dispersed; neither mode exhaustively searches all 2.5 km² areas. Weather-model cells are coarser than these observing areas.
+
+For **today**, choose a 30-minute slot. The visible tab refreshes at the next half-hour boundary and uses updated forecast data; a countdown is shown. Manually selecting a slot keeps that slot selected. **Future dates** have a single daily ranking: each area's best 30-minute window during astronomical darkness (Sun at or below −18°) in that calendar day. The date and all ranking times use your computer's time zone. There is no time selector or 30-minute refresh for a future daily ranking; it is cached for that day of use. Dates up to four days ahead are available.
+
+Areas lacking weather or atlas data are excluded rather than assigned invented values. If fewer than 100 eligible areas remain (for example, no astronomical darkness or insufficient nearby land), the actual smaller count is shown. **Map** opens the area's circle; **Plan** selects its forecast time in the planner. Country and land sampling uses coarse Natural Earth coastlines, so small islands/coastal land can be omitted. These are forecast estimates, not site inspections or access permissions.
+
+Forecasts are fetched in coordinate batches and cached between refreshes; atlas values are reused. Only the visible ranking tab refreshes automatically. Future daily results are separate from today's 30-minute rankings. External providers' usage limits still apply.
+
+The planner slider and time input select every minute, including 23/25-hour DST days and time zones with fractional-hour offsets. Sun/Moon positions use the exact selected minute. Weather remains hourly; no minute-resolution weather observations are invented. The Local API exports the selected minute as `selected_time` and its hourly weather record as `weather_time`.
 
 ## Local API and Python
 
@@ -92,4 +105,4 @@ For development location on macOS, build the app and test its bundled helper. `n
 
 ## Release builds
 
-Two independent GitHub Actions workflows build from platform tags: `v1.3.0-macos` and `v1.3.0-windows`. macOS runs Intel and Apple Silicon builds; Windows builds an x64 per-user NSIS installer and portable archive. Every packaged app is smoke-tested before release publication. Artifacts include SHA-256 checksums. Smoke tests exercise location consent / denial / success with fixture data and validate the actual bundled native executable's diagnostics. Real-device Windows location accuracy depends on hardware and OS permissions.
+Two independent GitHub Actions workflows build from platform tags: `v1.4.0-macos` and `v1.4.0-windows`. macOS runs Intel and Apple Silicon builds; Windows builds an x64 per-user NSIS installer and portable archive. Every packaged app is smoke-tested before release publication. Artifacts include SHA-256 checksums. Smoke tests exercise location consent / denial / success with fixture data and validate the actual bundled native executable's diagnostics. Real-device Windows location accuracy depends on hardware and OS permissions.

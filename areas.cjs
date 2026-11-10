@@ -1,0 +1,12 @@
+const fs=require('node:fs');const path=require('node:path');
+const R=6371.0088,AREA_KM2=2.5,AREA_RADIUS_KM=R*Math.acos(1-AREA_KM2/(2*Math.PI*R*R));
+const rad=x=>x*Math.PI/180,deg=x=>x*180/Math.PI;
+function distance(a,b){const dl=rad(b.lon-a.lon),dp=rad(b.lat-a.lat);return 2*R*Math.asin(Math.min(1,Math.sqrt(Math.sin(dp/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dl/2)**2)));}
+function destination(center,km,bearing){const d=km/R,b=rad(bearing),lat=rad(center.lat),lon=rad(center.lon),p=Math.asin(Math.sin(lat)*Math.cos(d)+Math.cos(lat)*Math.sin(d)*Math.cos(b));return {lat:deg(p),lon:((deg(lon+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(lat),Math.cos(d)-Math.sin(lat)*Math.sin(p)))+540)%360)-180};}
+function inRing(lon,lat,ring){let inside=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const [x,y]=ring[i],[px,py]=ring[j];if((y>lat)!==(py>lat)&&lon<(px-x)*(lat-y)/(py-y)+x)inside=!inside;}return inside;}
+let features;
+function landAt(lat,lon){if(!features){const geo=JSON.parse(fs.readFileSync(path.join(__dirname,'data','countries.geojson'),'utf8'));features=geo.features.map(f=>{const polygons=f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates;return {name:f.properties.ADMIN||f.properties.NAME,polygons:polygons.map(rings=>({rings,minX:Math.min(...rings[0].map(x=>x[0])),maxX:Math.max(...rings[0].map(x=>x[0])),minY:Math.min(...rings[0].map(x=>x[1])),maxY:Math.max(...rings[0].map(x=>x[1]))}))}});}
+ for(const feature of features)for(const p of feature.polygons){if(lon<p.minX||lon>p.maxX||lat<p.minY||lat>p.maxY)continue;if(inRing(lon,lat,p.rings[0])&&!p.rings.slice(1).some(r=>inRing(lon,lat,r)))return feature.name;}return null;}
+function candidates(scope,center,count=192){const pool=[];const total=scope==='nearby'?720:3200;for(let i=0;i<total;i++){let point;if(scope==='nearby')point=destination(center,Math.sqrt((i+.5)/total)*(100-AREA_RADIUS_KM),i*137.507764);else{const index=(i*1877)%total;point={lat:deg(Math.asin(-.9+1.865*(index+.5)/total)),lon:((i*137.507764+180)%360)-180};}const country=landAt(point.lat,point.lon);if(country)pool.push({...point,country});}
+ return Array.from({length:Math.min(count,pool.length)},(_,i)=>{const p=pool[Math.floor(i*pool.length/Math.min(count,pool.length))];return {...p,id:`${scope}-${p.lat.toFixed(5)}-${p.lon.toFixed(5)}`,area_km2:AREA_KM2,radius_m:AREA_RADIUS_KM*1000,...(center?{distance_km:distance(center,p)}:{})};});}
+module.exports={AREA_KM2,AREA_RADIUS_KM,distance,destination,landAt,candidates};
