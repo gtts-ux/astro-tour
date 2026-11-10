@@ -62,4 +62,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
-        run: gh release create "$TAG" --verify-tag --title "Astro Tour 1.4.0 — macOS" --notes-file .github/release-macos.md --latest assets/*
+        run: gh release create "$TAG" --verify-tag --title "Astro Tour 1.4.1 — macOS" --notes-file .github/release-macos.md --latest assets/*

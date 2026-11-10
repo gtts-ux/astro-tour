@@ -6,8 +6,8 @@ A desktop astrophotography planner for macOS and Windows. Find your observing lo
 
 | Platform | Release | Downloads |
 | --- | --- | --- |
-| macOS | [macOS release](https://github.com/gtts-ux/astro-tour/releases/tag/v1.4.0-macos) | Intel (x64) and Apple Silicon (arm64) ZIP archives |
-| Windows 10/11 | [Windows release](https://github.com/gtts-ux/astro-tour/releases/tag/v1.4.0-windows) | x64 installer EXE and portable ZIP |
+| macOS | [macOS release](https://github.com/gtts-ux/astro-tour/releases/tag/v1.4.1-macos) | Intel (x64) and Apple Silicon (arm64) ZIP archives |
+| Windows 10/11 | [Windows release](https://github.com/gtts-ux/astro-tour/releases/tag/v1.4.1-windows) | x64 installer EXE and portable ZIP |
 
 **Mac:** unzip and move Astro Tour.app to Applications. The app is locally signed but not Apple notarized; macOS may require **System Settings → Privacy & Security → Open Anyway** on first launch.
 
@@ -105,4 +105,4 @@ For development location on macOS, build the app and test its bundled helper. `n
 
 ## Release builds
 
-Two independent GitHub Actions workflows build from platform tags: `v1.4.0-macos` and `v1.4.0-windows`. macOS runs Intel and Apple Silicon builds; Windows builds an x64 per-user NSIS installer and portable archive. Every packaged app is smoke-tested before release publication. Artifacts include SHA-256 checksums. Smoke tests exercise location consent / denial / success with fixture data and validate the actual bundled native executable's diagnostics. Real-device Windows location accuracy depends on hardware and OS permissions.
+Two independent GitHub Actions workflows build from platform tags: `v1.4.1-macos` and `v1.4.1-windows`. macOS runs Intel and Apple Silicon builds; Windows builds an x64 per-user NSIS installer and portable archive. Every packaged app is smoke-tested before release publication. Artifacts include SHA-256 checksums. Smoke tests exercise location consent / denial / success with fixture data and validate the actual bundled native executable's diagnostics. Real-device Windows location accuracy depends on hardware and OS permissions.
